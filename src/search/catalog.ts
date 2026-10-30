@@ -9,6 +9,7 @@ export type Language = 'de' | 'en';
 /** A dish as the coach sees it: from search-service, in the customer's language. */
 export interface Dish {
     id: string;
+    slug: string;
     name: string;
     description: string;
     section: string;
@@ -133,6 +134,7 @@ export class GrpcCatalog implements Catalog {
 function dish(message: DishMessage): Dish {
     return {
         id: message.id,
+        slug: message.slug,
         name: message.name,
         description: message.description,
         section: message.section,

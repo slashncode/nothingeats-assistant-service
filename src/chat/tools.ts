@@ -5,6 +5,7 @@ import { z } from 'zod';
 /** A dish the coach recommended, as the chat shows it: catalog data only, plus the model's reason. */
 export interface ShownDish {
     id: string;
+    slug: string;
     name: string;
     description: string;
     cuisine: string;
@@ -14,6 +15,7 @@ export interface ShownDish {
     allergens: string[];
     spiceLevel: number;
     calories: number;
+    moods: string[];
     openNow: boolean;
     reason: string;
 }
@@ -71,6 +73,7 @@ function forModel(dish: Dish) {
 function shown(dish: Dish, reason: string): ShownDish {
     return {
         id: dish.id,
+        slug: dish.slug,
         name: dish.name,
         description: dish.description,
         cuisine: dish.cuisine,
@@ -80,6 +83,7 @@ function shown(dish: Dish, reason: string): ShownDish {
         allergens: dish.allergens,
         spiceLevel: dish.spiceLevel,
         calories: dish.calories,
+        moods: dish.moods,
         openNow: dish.openNow,
         reason,
     };

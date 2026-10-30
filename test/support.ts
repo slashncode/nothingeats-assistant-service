@@ -65,6 +65,7 @@ export async function startValkey(): Promise<StartedTestContainer> {
 export function dish(id: string, overrides: Partial<Dish> = {}): Dish {
     return {
         id,
+        slug: id.replace(/^d-/, ''),
         name: `Dish ${id}`,
         description: `The description of ${id}`,
         section: 'Mains',
