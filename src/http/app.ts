@@ -1,4 +1,5 @@
 import type { Consent } from '../analytics.ts';
+import type { CoachAvailability } from '../chat/availability.ts';
 import type { Coach } from '../chat/coach.ts';
 import type { ConversationStore } from '../store/conversations.ts';
 import type { Caller, JwtAuth } from './auth.ts';
@@ -16,6 +17,7 @@ export interface Health {
 export interface AppDependencies {
     auth: JwtAuth;
     coach: Coach;
+    availability: CoachAvailability;
     conversations: ConversationStore;
     health: Health;
 }
@@ -67,7 +69,7 @@ function consentOf(headers: Headers): Consent | undefined {
  * `/api/assistant/v1`: every route needs a signed-in customer, and every conversation belongs to
  * exactly one of them. Health endpoints live outside the API path, for the probes.
  */
-export function createApp({ auth, coach, conversations, health }: AppDependencies): Hono {
+export function createApp({ auth, coach, availability, conversations, health }: AppDependencies): Hono {
     const app = new Hono();
 
     app.get('/health/live', c => (health.isLive()
@@ -94,7 +96,12 @@ export function createApp({ auth, coach, conversations, health }: AppDependencie
         await next();
     });
 
+    // Whether the chat should show the coach at all (the flag's rollout and kill switch).
+    api.get('/availability', async c => c.json({ enabled: await availability.enabled(c.get('caller'), c.get('consent')) }));
+
     api.post('/chat', async (c) => {
+        if (!(await availability.enabled(c.get('caller'), c.get('consent'))))
+            throw new AppError(403, 'COACH_DISABLED', 'The coach is not available for this account');
         const parsed = chatRequest.safeParse(await c.req.json().catch(() => undefined));
         if (!parsed.success) {
             throw AppError.invalid(

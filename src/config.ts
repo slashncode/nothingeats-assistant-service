@@ -23,6 +23,10 @@ const environment = z
         JWT__JWKS_URL: z.url().default('http://nothingeats.localhost/api/identity/.well-known/jwks.json'),
         POSTHOG__PROJECT_TOKEN: z.string().default(''),
         POSTHOG__HOST: z.url().default('https://eu.i.posthog.com'),
+        // The project's Feature Flags Secure API Key (phs_…): flags are evaluated here, locally.
+        POSTHOG__FLAGS_SECRET_KEY: z.string().optional(),
+        // Rollout and kill switch of the coach; without the flag (or the key) the coach is on.
+        COACH__FLAG: z.string().default('craving-coach'),
         // DEMO is a scripted model: no key, no costs, always the same three steps.
         AI__PROVIDER: z.enum(['OPENAI', 'DEMO']).default('DEMO'),
         AI__MODEL: z.string().default('gpt-5-nano-2025-08-07'),
@@ -50,7 +54,8 @@ export interface Config {
     kafka: { bootstrapServers: string[] };
     valkey: { host: string; port: number; username: string; password?: string };
     jwt: { issuer: string; audience: string; jwksUrl: string };
-    posthog: { projectToken: string; host: string };
+    posthog: { projectToken: string; host: string; flagsSecretKey?: string };
+    coach: { flag: string };
     ai: { provider: 'OPENAI' | 'DEMO'; model: string; reasoningEffort: ReasoningEffort; apiKey?: string };
     search: { target: string; deadlineMs: number };
     limits: { messagesPerHour: number; tokensPerDay: number };
@@ -84,7 +89,8 @@ export function loadConfig(source: Record<string, string | undefined> = process.
             password: env.VALKEY__PASSWORD,
         },
         jwt: { issuer: env.JWT__ISSUER, audience: env.JWT__AUDIENCE, jwksUrl: env.JWT__JWKS_URL },
-        posthog: { projectToken: env.POSTHOG__PROJECT_TOKEN, host: env.POSTHOG__HOST },
+        posthog: { projectToken: env.POSTHOG__PROJECT_TOKEN, host: env.POSTHOG__HOST, flagsSecretKey: env.POSTHOG__FLAGS_SECRET_KEY },
+        coach: { flag: env.COACH__FLAG },
         ai: {
             provider: env.AI__PROVIDER,
             model: env.AI__MODEL,

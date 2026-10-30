@@ -16,15 +16,43 @@ export interface Analytics {
     capture: (consent: Consent | undefined, event: string, properties: Record<string, unknown>) => void;
 }
 
-/** posthog-node, batched; no project token (tests, local runs) means no client at all. */
-export class PostHogAnalytics implements Analytics, Component {
+export interface Flags {
+    /**
+     * Whether [flag] is on for [distinctId], evaluated in this process from the flag definitions;
+     * undefined when that is not possible (no key, no such flag, conditions on person properties).
+     * Only [report] sends PostHog the `$feature_flag_called` event.
+     */
+    isEnabled: (flag: string, distinctId: string, report: boolean) => Promise<boolean | undefined>;
+}
+
+/**
+ * posthog-node, batched; no project token (tests, local runs) means no client at all. With the
+ * project's flags secret key it also loads the flag definitions (every 30 s) and evaluates flags
+ * locally: deciding a flag sends PostHog nothing about the person.
+ */
+export class PostHogAnalytics implements Analytics, Flags, Component {
     readonly name = 'posthog';
     private readonly client: PostHog | undefined;
+    private readonly localFlags: boolean;
 
-    constructor(projectToken: string, host: string) {
+    constructor(projectToken: string, host: string, flagsSecretKey?: string) {
+        this.localFlags = Boolean(projectToken && flagsSecretKey);
         this.client = projectToken
-            ? new PostHog(projectToken, { host, flushAt: 20, flushInterval: 5_000 })
+            ? new PostHog(projectToken, {
+                    host,
+                    flushAt: 20,
+                    flushInterval: 5_000,
+                    ...(flagsSecretKey
+                        ? { secretKey: flagsSecretKey, featureFlagsPollingInterval: 30_000 }
+                        : { enableLocalEvaluation: false }),
+                })
             : undefined;
+    }
+
+    async isEnabled(flag: string, distinctId: string, report: boolean): Promise<boolean | undefined> {
+        if (!this.client || !this.localFlags)
+            return undefined;
+        return this.client.isFeatureEnabled(flag, distinctId, { onlyEvaluateLocally: true, sendFeatureFlagEvents: report });
     }
 
     capture(consent: Consent | undefined, event: string, properties: Record<string, unknown>): void {

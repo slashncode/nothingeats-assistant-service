@@ -18,6 +18,7 @@ Assistant service of NothingEats: the Craving Coach chat (TypeScript, Vercel AI 
 - Every search call forwards the customer's token; there is no service identity towards search.
 - Tools are `strict: true` (OpenAI structured outputs enforce the schema while the model writes, enums included): "not given" is `.nullable()`, never `.optional()`.
 - PostHog only with consent (`Consent` from the browser's PostHog headers). LLM analytics events are built in `CoachTrace`.
+- The `craving-coach` flag is evaluated locally (`CoachAvailability`): no person data goes to PostHog for it, and an unknown flag means on. `/chat` enforces it, `/availability` tells the chat.
 - Prompt or model changes are judged by `pnpm eval`, not by feel. Add a golden craving for every complaint.
 - Migrations in `drizzle/` are generated and never edited after they ran somewhere.
 - `user.deleted` erases every conversation of that customer; the export holds everything stored.

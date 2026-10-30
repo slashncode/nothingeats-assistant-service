@@ -18,13 +18,18 @@ Search runs on the customer's behalf: their access token goes along on every gRP
 
 | Method | Path | What |
 |---|---|---|
-| `POST` | `/chat` | `{ id, language, message }` → UI message stream. 404 for someone else's conversation, 422 for an empty or over-long (500 characters) message, 429 `COACH_TOO_MANY_MESSAGES` / `COACH_DAILY_BUDGET_USED` with `Retry-After` |
+| `GET` | `/availability` | `{ enabled }`: whether the chat shows the coach to this customer (the flag below) |
+| `POST` | `/chat` | `{ id, language, message }` → UI message stream. 403 `COACH_DISABLED` when the flag is off for the customer, 404 for someone else's conversation, 422 for an empty or over-long (500 characters) message, 429 `COACH_TOO_MANY_MESSAGES` / `COACH_DAILY_BUDGET_USED` with `Retry-After` |
 | `GET` | `/conversations` | The latest 20, newest first |
 | `GET` | `/conversations/{id}` | One conversation with its messages, as the chat shows them |
 | `DELETE` | `/conversations/{id}` | 204 |
 | `GET` | `/me/export` | GDPR export: every conversation |
 
 Errors are RFC 9457 problems with a stable `code`. A failing model ends the stream with an error part `COACH_BUSY` (rate limited) or `COACH_UNAVAILABLE`, and the customer's message stays stored.
+
+## Rollout: the `craving-coach` flag
+
+A PostHog feature flag decides who gets the coach (rollout percentage) and switches it off for everyone (kill switch). The service evaluates it **locally** with the project's Feature Flags Secure API Key (`POSTHOG__FLAGS_SECRET_KEY`, `phs_…`): posthog-node loads the flag definitions every 30 seconds and decides in process, under the account id, so the rollout bucket is the same with and without consent and nothing about the customer goes to PostHog for the decision. `$feature_flag_called` is sent only with consent. Conditions on person properties cannot be evaluated locally (the service knows none); use the rollout percentage. Without the key, or without the flag, the coach is on.
 
 ## Privacy
 

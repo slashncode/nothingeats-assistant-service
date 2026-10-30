@@ -1,11 +1,13 @@
 import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { LanguageModel } from 'ai';
 import type { StartedTestContainer } from 'testcontainers';
+import type { Flags } from '../src/analytics.ts';
 import type { LimitSettings } from '../src/limits.ts';
 import type { Postgres } from '../src/store/db.ts';
 import { APICallError } from 'ai';
 import { Valkey } from 'iovalkey';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { CoachAvailability } from '../src/chat/availability.ts';
 import { Coach } from '../src/chat/coach.ts';
 import { DemoModel } from '../src/chat/demoModel.ts';
 import { userEventHandler } from '../src/events/userEvents.ts';
@@ -53,7 +55,7 @@ async function limiter(settings: LimitSettings = { messagesPerHour: 100, tokensP
 }
 
 /** The whole HTTP API with the scripted model, a fake search and real Postgres and Valkey. */
-async function service(options: { limits?: LimitSettings; model?: LanguageModel } = {}) {
+async function service(options: { limits?: LimitSettings; model?: LanguageModel; flags?: Flags } = {}) {
     const catalog = new FakeCatalog();
     const analytics = new RecordingAnalytics();
     const conversations = new PostgresConversations(database.postgres.db);
@@ -69,6 +71,9 @@ async function service(options: { limits?: LimitSettings; model?: LanguageModel 
     const app = createApp({
         auth: tokens.auth,
         coach,
+        availability: new CoachAvailability(options.flags ?? {
+            isEnabled: async () => undefined,
+        }, 'craving-coach'),
         conversations,
         health: {
             isLive: () => true,
@@ -283,5 +288,41 @@ describe('the craving coach', () => {
         }));
 
         expect(await conversations.export('customer-7')).toEqual([]);
+    });
+
+    it('follows the flag: off means no button and no answers, and only consent reports the call', async () => {
+        const calls: { flag: string; distinctId: string; report: boolean }[] = [];
+        let on: boolean | undefined = false;
+        const flags: Flags = {
+            isEnabled: async (flag, distinctId, report) => {
+                calls.push({ flag, distinctId, report });
+                return on;
+            },
+        };
+        const { app } = await service({ flags });
+        const token = await tokens.token('customer-8');
+        const availability = async (headers: Record<string, string> = {}) =>
+            json(await app.request('/api/assistant/v1/availability', {
+                headers: { authorization: `Bearer ${token}`, ...headers },
+            }));
+
+        expect(await availability()).toEqual({ enabled: false });
+        const refused = await chat(app, token, 'Hunger');
+        expect(refused.status).toBe(403);
+        expect((await json(refused)).code).toBe('COACH_DISABLED');
+
+        on = undefined;
+        expect(await availability({ 'x-posthog-distinct-id': 'customer-8' })).toEqual({ enabled: true });
+        // Always under the account id; the event only with consent.
+        expect(calls.map(call => [call.flag, call.distinctId, call.report])).toEqual([
+            ['craving-coach', 'customer-8', false],
+            ['craving-coach', 'customer-8', false],
+            ['craving-coach', 'customer-8', true],
+        ]);
+
+        const broken = new CoachAvailability({
+            isEnabled: async () => { throw new Error('PostHog is down'); },
+        }, 'craving-coach');
+        expect(await broken.enabled({ id: 'customer-8', roles: [], token }, undefined)).toBe(true);
     });
 });

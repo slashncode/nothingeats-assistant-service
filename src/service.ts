@@ -3,6 +3,7 @@ import type { Config } from './config.ts';
 import type { Health } from './http/app.ts';
 import { createOpenAI } from '@ai-sdk/openai';
 import { PostHogAnalytics } from './analytics.ts';
+import { CoachAvailability } from './chat/availability.ts';
 import { Coach } from './chat/coach.ts';
 import { DemoModel } from './chat/demoModel.ts';
 import { UserEvents } from './events/userEvents.ts';
@@ -45,7 +46,7 @@ export function createService(config: Config) {
     const postgres = new Postgres(config.database);
     const conversations = new PostgresConversations(postgres.db);
     const limiter = ValkeyLimiter.connect(config.valkey, config.limits);
-    const analytics = new PostHogAnalytics(config.posthog.projectToken, config.posthog.host);
+    const analytics = new PostHogAnalytics(config.posthog.projectToken, config.posthog.host, config.posthog.flagsSecretKey);
     const catalog = new GrpcCatalog(config.search.target, config.search.deadlineMs);
     const coach = new Coach({
         ...languageModel(config.ai),
@@ -63,6 +64,7 @@ export function createService(config: Config) {
     const app = createApp({
         auth: new JwtAuth(config.jwt),
         coach,
+        availability: new CoachAvailability(analytics, config.coach.flag),
         conversations,
         health,
     });
