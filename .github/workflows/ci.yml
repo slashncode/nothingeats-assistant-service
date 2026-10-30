@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  pnpm:
+    uses: slashncode/nothingeats-ci/.github/workflows/pnpm.yml@main
+    permissions:
+      contents: read
+    with:
+      # The gRPC client is generated from search-service's protos; gen:check proves it is current.
+      checkout-repos: nothingeats-search-service
+      buf: true
+
+  image:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: pnpm
+    uses: slashncode/nothingeats-ci/.github/workflows/pnpm-image.yml@main
+    permissions:
+      contents: read
+      packages: write # push the image to GHCR
+      id-token: write # keyless cosign signing
+
+  codeql:
+    uses: slashncode/nothingeats-ci/.github/workflows/codeql.yml@main
+    permissions:
+      contents: read
+      security-events: write
+    with:
+      language: javascript-typescript
+
+  pr:
+    if: github.event_name == 'pull_request'
+    uses: slashncode/nothingeats-ci/.github/workflows/pr-hygiene.yml@main
+    permissions:
+      contents: read
+      pull-requests: write

@@ -1,0 +1,12 @@
+# TypeScript client for search-service's gRPC contract (the producer owns the protos, record 011).
+# `pnpm gen` regenerates from the sibling checkout; CI checks that the committed code matches.
+version: v2
+inputs:
+  - directory: ../nothingeats-search-service/grpc-api/src/main/proto
+plugins:
+  - local: protoc-gen-es
+    out: src/gen
+    include_imports: true
+    opt:
+      - target=ts
+      - import_extension=ts

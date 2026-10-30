@@ -1,0 +1,13 @@
+# pnpm settings (no workspace packages). pnpm writes some of these itself.
+
+# Install scripts stay off: esbuild ships its binary through optional dependencies; ssh2 and
+# cpu-features (via testcontainers' docker client) only build optional native speedups; protobufjs
+# (via testcontainers) only prints a hint.
+allowBuilds:
+  cpu-features: false
+  esbuild: false
+  protobufjs: false
+  ssh2: false
+
+shellEmulator: true
+trustPolicy: no-downgrade

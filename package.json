@@ -1,0 +1,58 @@
+{
+    "name": "nothingeats-assistant-service",
+    "type": "module",
+    "version": "0.1.0",
+    "private": true,
+    "packageManager": "pnpm@12.15.0",
+    "description": "NothingEats Craving Coach: an AI chat that finds dishes you will never eat.",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/slashncode/nothingeats-assistant-service.git"
+    },
+    "engines": {
+        "node": ">=24"
+    },
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "start": "node src/main.ts",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint .",
+        "test": "vitest run",
+        "gen": "buf generate",
+        "gen:check": "buf generate && git diff --exit-code -- src/gen",
+        "db:generate": "drizzle-kit generate",
+        "eval": "node eval/run.ts"
+    },
+    "dependencies": {
+        "@ai-sdk/openai": "^4.0.104",
+        "@ai-sdk/provider": "^4.0.34",
+        "@bufbuild/protobuf": "^2.16.0",
+        "@connectrpc/connect": "^2.3.0",
+        "@connectrpc/connect-node": "^2.3.0",
+        "@hono/node-server": "^2.1.5",
+        "@platformatic/kafka": "^2.14.0",
+        "@posthog/ai": "^8.17.1",
+        "ai": "^7.0.156",
+        "drizzle-orm": "^0.45.4",
+        "hono": "^4.13.14",
+        "iovalkey": "^0.4.0",
+        "jose": "^6.2.14",
+        "pino": "^10.4.0",
+        "postgres": "^3.4.9",
+        "posthog-node": "^5.60.0",
+        "zod": "^4.6.7"
+    },
+    "devDependencies": {
+        "@antfu/eslint-config": "^10.0.0",
+        "@bufbuild/protoc-gen-es": "^2.16.0",
+        "@testcontainers/postgresql": "^12.2.1",
+        "@types/node": "^24.19.2",
+        "drizzle-kit": "^0.31.11",
+        "esbuild": "^0.28.2",
+        "eslint": "^10.13.0",
+        "testcontainers": "^12.2.1",
+        "typescript": "~6.0.3",
+        "vitest": "^5.0.5"
+    }
+}
