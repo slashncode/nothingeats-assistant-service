@@ -41,7 +41,7 @@ The events are built from the AI SDK's lifecycle callbacks (`onLanguageModelCall
 ## Quality
 
 - `pnpm test`: the HTTP API with a scripted model (`DemoModel`), a fake search, and real Postgres and Valkey in containers.
-- `pnpm eval`: golden cravings against the real model and the live search, checked by rules a good answer must keep (diet, allergens, price, heat, calories, open now, no prompt leak, no dishes for off-topic questions). With `gpt-5-nano` at `low` reasoning: 11 of 11 pass, 10–22 s and 6–11k tokens a turn. At `minimal` only 3 of 11 pass: the model announces a search instead of calling the tool.
+- `pnpm eval`: golden cravings against the real model and the live search, checked by rules a good answer must keep (diet, allergens, price, heat, calories, open now, no prompt leak, no dishes for off-topic questions). With `gpt-5-nano` at `low` reasoning and strict tool schemas: 11 of 11 pass, 10–15 s and 6–9k tokens a turn. At `minimal` only 3 of 11 pass: the model announces a search instead of calling the tool. Without strict schemas the model now and then filtered by a mood the catalog does not have (`warm`), got the validation error back and needed an extra step.
 
 ```bash
 kubectl -n nothingeats port-forward svc/search-service-grpc 19090:9090 &

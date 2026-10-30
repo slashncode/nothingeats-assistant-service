@@ -43,8 +43,10 @@ interface ToolsContext {
 
 const MAX_DESCRIPTION = 160;
 
-// Strict tool schemas (OpenAI structured outputs) have no optional fields: "not given" is null.
-// The filter words come from the live catalog, so the model cannot filter by a tag no dish has.
+// Strict tool schemas (OpenAI structured outputs): the model can only produce what the schema
+// allows, so an enum is enforced while it writes, not rejected afterwards. They have no optional
+// fields: "not given" is null. The filter words come from the live catalog, so the model cannot
+// filter by a tag no dish has.
 function words(values: string[] | undefined) {
     const [first, ...rest] = values ?? [];
     return first === undefined
@@ -99,6 +101,7 @@ function shown(dish: Dish, reason: string): ShownDish {
 export function coachTools({ catalog, token, language, vocabulary, state }: ToolsContext) {
     return {
         searchDishes: tool({
+            strict: true,
             description:
                 'Find dishes in the NothingEats catalog that fit a craving. Rewrite the craving as a short query in the '
                 + 'customer\'s language. Set filters only for what the customer asked for (diet, allergies, price, heat, open now).',
@@ -139,6 +142,7 @@ export function coachTools({ catalog, token, language, vocabulary, state }: Tool
         }),
 
         getDish: tool({
+            strict: true,
             description: 'Everything about one dish from an earlier search: full description, allergens, calories.',
             inputSchema: z.object({
                 id: z.string().max(80),
@@ -162,6 +166,7 @@ export function coachTools({ catalog, token, language, vocabulary, state }: Tool
         }),
 
         recommendDishes: tool({
+            strict: true,
             description:
                 'Show one to three dishes to the customer as cards they can add to the cart. Only ids from searchDishes '
                 + 'or getDish. Give each a short reason in the customer\'s language. Do not repeat the cards in your text.',

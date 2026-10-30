@@ -16,7 +16,7 @@ Assistant service of NothingEats: the Craving Coach chat (TypeScript, Vercel AI 
 - Node runs the TypeScript sources directly (type stripping): only erasable syntax, no enums or constructor parameter properties, imports with `.ts`.
 - The coach recommends only through `recommendDishes`; its cards carry catalog data. Never let model text become dish data.
 - Every search call forwards the customer's token; there is no service identity towards search.
-- Tool input schemas are strict (OpenAI structured outputs): "not given" is `.nullable()`, never `.optional()`.
+- Tools are `strict: true` (OpenAI structured outputs enforce the schema while the model writes, enums included): "not given" is `.nullable()`, never `.optional()`.
 - PostHog only with consent (`Consent` from the browser's PostHog headers). LLM analytics events are built in `CoachTrace`.
 - Prompt or model changes are judged by `pnpm eval`, not by feel. Add a golden craving for every complaint.
 - Migrations in `drizzle/` are generated and never edited after they ran somewhere.
