@@ -52,7 +52,15 @@ export class PostHogAnalytics implements Analytics, Flags, Component {
     async isEnabled(flag: string, distinctId: string, report: boolean): Promise<boolean | undefined> {
         if (!this.client || !this.localFlags)
             return undefined;
-        return this.client.isFeatureEnabled(flag, distinctId, { onlyEvaluateLocally: true, sendFeatureFlagEvents: report });
+        const flags = await this.client.evaluateFlags(distinctId, {
+            flagKeys: [flag],
+            onlyEvaluateLocally: true,
+        });
+        const value = flags.getFlag(flag, { sendFeatureFlagEvents: report });
+        // A variant counts as on; a flag that is not in the definitions stays undecided.
+        return value === undefined
+            ? undefined
+            : value !== false;
     }
 
     capture(consent: Consent | undefined, event: string, properties: Record<string, unknown>): void {
