@@ -74,13 +74,43 @@ export async function processRecord(
     }
 }
 
+/**
+ * Runs [consume] again whenever it fails, after a pause that doubles with every failure in a row
+ * (1 s up to 30 s), until [running] says stop. [consume] calls `healthy()` once it is consuming,
+ * which resets the count. Like the Kotlin services' consumers: a consumer that dies (the group
+ * took its partitions away after a long pause, a broker error) is replaced, never left stopped.
+ */
+export async function supervise(
+    consume: (healthy: () => void) => Promise<void>,
+    running: () => boolean,
+    onFailure: (error: unknown, failuresInARow: number) => void,
+    { pauseMs = 1_000, maxPauseMs = 30_000 } = {},
+): Promise<void> {
+    let failures = 0;
+    while (running()) {
+        try {
+            await consume(() => {
+                failures = 0;
+            });
+        }
+        catch (error) {
+            if (!running())
+                return;
+            failures++;
+            onFailure(error, failures);
+            await new Promise(resolve => setTimeout(resolve, Math.min(pauseMs * 2 ** (failures - 1), maxPauseMs)));
+        }
+    }
+}
+
 /** The `assistant-service` consumer group on identity's user topic. Starts after the HTTP server. */
 export class UserEvents implements Component {
     readonly name = 'user-events';
-    private consumer: Consumer<string, string, string, string> | undefined;
     private producer: Producer<string, string, string, string> | undefined;
     private stream: MessagesStream<string, string, string, string> | undefined;
     private loop: Promise<void> | undefined;
+    private running = false;
+    private healthy = false;
     private readonly bootstrapServers: string[];
     private readonly conversations: ConversationStore;
 
@@ -91,22 +121,48 @@ export class UserEvents implements Component {
 
     async start(): Promise<void> {
         this.producer = new Producer({ clientId: `${GROUP_ID}-dlq`, bootstrapBrokers: this.bootstrapServers, serializers: stringSerializers });
-        this.consumer = new Consumer({
+        this.running = true;
+        this.loop = supervise(
+            healthy => this.consume(healthy),
+            () => this.running,
+            (error, failuresInARow) => {
+                this.healthy = false;
+                log.error({ err: error, failuresInARow }, 'The user event consumer failed; replacing it');
+            },
+        );
+    }
+
+    /** Readiness: down until the consumer has joined its group, and from a failure until the next one has. */
+    async check(): Promise<boolean> {
+        return this.healthy;
+    }
+
+    async stop(): Promise<void> {
+        this.running = false;
+        await this.stream?.close();
+        await this.loop;
+        await this.producer?.close();
+    }
+
+    private async consume(healthy: () => void): Promise<void> {
+        const consumer = new Consumer<string, string, string, string>({
             groupId: GROUP_ID,
             clientId: GROUP_ID,
             bootstrapBrokers: this.bootstrapServers,
             deserializers: stringDeserializers,
         });
-        this.stream = await this.consumer.consume({
-            topics: [USER_TOPIC],
-            mode: 'committed',
-            fallbackMode: 'earliest',
-            autocommit: false,
-        });
-        const handle = userEventHandler(this.conversations);
-        const deadLetters = this.deadLetters(this.producer);
-        const stream = this.stream;
-        this.loop = (async () => {
+        try {
+            const stream = await consumer.consume({
+                topics: [USER_TOPIC],
+                mode: 'committed',
+                fallbackMode: 'earliest',
+                autocommit: false,
+            });
+            this.stream = stream;
+            this.healthy = true;
+            healthy();
+            const handle = userEventHandler(this.conversations);
+            const deadLetters = this.deadLetters(this.producer!);
             for await (const message of stream as AsyncIterable<Message<string, string, string, string>>) {
                 await processRecord(
                     {
@@ -121,20 +177,13 @@ export class UserEvents implements Component {
                 );
                 await message.commit();
             }
-        })().catch((error) => {
-            log.error({ err: error }, 'The user event consumer stopped');
-        });
-    }
-
-    async check(): Promise<boolean> {
-        return this.stream !== undefined && !this.stream.closed;
-    }
-
-    async stop(): Promise<void> {
-        await this.stream?.close();
-        await this.loop;
-        await this.consumer?.close(true);
-        await this.producer?.close();
+            if (this.running)
+                throw new Error('The user event stream ended');
+        }
+        finally {
+            await this.stream?.close().catch(() => {});
+            await consumer.close(true).catch(() => {});
+        }
     }
 
     private deadLetters(producer: Producer<string, string, string, string>): DeadLetters {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { processRecord, userEventHandler } from '../src/events/userEvents.ts';
+import { processRecord, supervise, userEventHandler } from '../src/events/userEvents.ts';
 
 const record = {
     key: 'customer-1',
@@ -60,5 +60,31 @@ describe('identity events', () => {
 
         expect(parked).toHaveLength(1);
         expect(deleted).toEqual(['customer-1']);
+    });
+
+    it('replaces a failed consumer with a growing pause, and stops when asked', async () => {
+        let running = true;
+        const failures: number[] = [];
+        let runs = 0;
+
+        await supervise(
+            async (healthy) => {
+                runs++;
+                if (runs === 3)
+                    healthy();
+                if (runs === 5) {
+                    running = false;
+                    return;
+                }
+                throw new Error(`consumer ${runs} died`);
+            },
+            () => running,
+            (_error, inARow) => failures.push(inARow),
+            { pauseMs: 1, maxPauseMs: 4 },
+        );
+
+        // Two failures, then one that had been healthy before it died starts the count anew.
+        expect(failures).toEqual([1, 2, 1, 2]);
+        expect(runs).toBe(5);
     });
 });
