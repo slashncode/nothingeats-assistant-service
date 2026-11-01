@@ -23,6 +23,15 @@ export interface Dish {
     moods: string[];
     available: boolean;
     openNow: boolean;
+    /** The dish's photo (public paths under /media); null: the shop draws an illustration. */
+    image: DishImage | null;
+}
+
+export interface DishImage {
+    url: string;
+    cardUrl: string;
+    wideUrl: string;
+    alt: string;
 }
 
 export interface RetrieveInput {
@@ -148,6 +157,14 @@ function dish(message: DishMessage): Dish {
         moods: message.moods,
         available: message.available,
         openNow: message.openNow,
+        image: message.image
+            ? {
+                    url: message.image.url,
+                    cardUrl: message.image.cardUrl,
+                    wideUrl: message.image.wideUrl,
+                    alt: message.image.alt,
+                }
+            : null,
     };
 }
 

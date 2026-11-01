@@ -79,6 +79,7 @@ export function dish(id: string, overrides: Partial<Dish> = {}): Dish {
         moods: ['comfort'],
         available: true,
         openNow: true,
+        image: null,
         ...overrides,
     };
 }

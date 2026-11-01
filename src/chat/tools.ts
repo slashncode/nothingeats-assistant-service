@@ -1,4 +1,4 @@
-import type { Catalog, Dish, Language, Vocabulary } from '../search/catalog.ts';
+import type { Catalog, Dish, DishImage, Language, Vocabulary } from '../search/catalog.ts';
 import { tool } from 'ai';
 import { z } from 'zod';
 
@@ -18,6 +18,7 @@ export interface ShownDish {
     moods: string[];
     openNow: boolean;
     reason: string;
+    image: DishImage | null;
 }
 
 /** What the tools of one turn learned: every dish search returned, and what was shown. */
@@ -88,6 +89,7 @@ function shown(dish: Dish, reason: string): ShownDish {
         moods: dish.moods,
         openNow: dish.openNow,
         reason,
+        image: dish.image,
     };
 }
 

@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file nothingeats/search/v1/search.proto.
  */
 export const file_nothingeats_search_v1_search: GenFile = /*@__PURE__*/
-  fileDesc("CiJub3RoaW5nZWF0cy9zZWFyY2gvdjEvc2VhcmNoLnByb3RvEhVub3RoaW5nZWF0cy5zZWFyY2gudjEizAEKB0ZpbHRlcnMSEAoIY3Vpc2luZXMYASADKAkSDwoHZGlldGFyeRgCIAMoCRIZChFleGNsdWRlX2FsbGVyZ2VucxgDIAMoCRINCgVtb29kcxgEIAMoCRIcCg9tYXhfc3BpY2VfbGV2ZWwYBSABKAVIAIgBARIcCg9tYXhfcHJpY2VfY2VudHMYBiABKANIAYgBARIQCghvcGVuX25vdxgHIAEoCEISChBfbWF4X3NwaWNlX2xldmVsQhIKEF9tYXhfcHJpY2VfY2VudHMi4AEKD1JldHJpZXZlUmVxdWVzdBINCgVxdWVyeRgBIAEoCRIQCghsYW5ndWFnZRgCIAEoCRIQCghrZXl3b3JkcxgDIAMoCRIZChFuZWdhdGl2ZV9rZXl3b3JkcxgEIAMoCRIvCgdmaWx0ZXJzGAUgASgLMh4ubm90aGluZ2VhdHMuc2VhcmNoLnYxLkZpbHRlcnMSHAoPc2VtYW50aWNfd2VpZ2h0GAYgASgBSACIAQESEgoFbGltaXQYByABKAVIAYgBAUISChBfc2VtYW50aWNfd2VpZ2h0QggKBl9saW1pdCLCAgoERGlzaBIKCgJpZBgBIAEoCRIVCg1yZXN0YXVyYW50X2lkGAIgASgJEhcKD3Jlc3RhdXJhbnRfc2x1ZxgDIAEoCRIXCg9yZXN0YXVyYW50X25hbWUYBCABKAkSDwoHY3Vpc2luZRgFIAEoCRIMCgRzbHVnGAYgASgJEgwKBG5hbWUYByABKAkSEwoLZGVzY3JpcHRpb24YCCABKAkSDwoHc2VjdGlvbhgJIAEoCRITCgtwcmljZV9jZW50cxgKIAEoAxIPCgdkaWV0YXJ5GAsgAygJEhEKCWFsbGVyZ2VucxgMIAMoCRITCgtzcGljZV9sZXZlbBgNIAEoBRIQCghjYWxvcmllcxgOIAEoBRINCgVtb29kcxgPIAMoCRIRCglhdmFpbGFibGUYECABKAgSEAoIb3Blbl9ub3cYESABKAgidgoNUmV0cmlldmVkRGlzaBIpCgRkaXNoGAEgASgLMhsubm90aGluZ2VhdHMuc2VhcmNoLnYxLkRpc2gSDQoFc2NvcmUYAiABKAESFAoMbGV4aWNhbF9yYW5rGAMgASgFEhUKDXNlbWFudGljX3JhbmsYBCABKAUiWgoQUmV0cmlldmVSZXNwb25zZRI0CgZkaXNoZXMYASADKAsyJC5ub3RoaW5nZWF0cy5zZWFyY2gudjEuUmV0cmlldmVkRGlzaBIQCghzZW1hbnRpYxgCIAEoCCIxChBHZXREaXNoZXNSZXF1ZXN0EgsKA2lkcxgBIAMoCRIQCghsYW5ndWFnZRgCIAEoCSJAChFHZXREaXNoZXNSZXNwb25zZRIrCgZkaXNoZXMYASADKAsyGy5ub3RoaW5nZWF0cy5zZWFyY2gudjEuRGlzaCIYChZEZXNjcmliZUNhdGFsb2dSZXF1ZXN0IjAKD1ZvY2FidWxhcnlWYWx1ZRINCgV2YWx1ZRgBIAEoCRIOCgZkaXNoZXMYAiABKAMi/gEKF0Rlc2NyaWJlQ2F0YWxvZ1Jlc3BvbnNlEjgKCGN1aXNpbmVzGAEgAygLMiYubm90aGluZ2VhdHMuc2VhcmNoLnYxLlZvY2FidWxhcnlWYWx1ZRI3CgdkaWV0YXJ5GAIgAygLMiYubm90aGluZ2VhdHMuc2VhcmNoLnYxLlZvY2FidWxhcnlWYWx1ZRI1CgVtb29kcxgDIAMoCzImLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5Wb2NhYnVsYXJ5VmFsdWUSOQoJYWxsZXJnZW5zGAQgAygLMiYubm90aGluZ2VhdHMuc2VhcmNoLnYxLlZvY2FidWxhcnlWYWx1ZTK+AgoNU2VhcmNoU2VydmljZRJbCghSZXRyaWV2ZRImLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5SZXRyaWV2ZVJlcXVlc3QaJy5ub3RoaW5nZWF0cy5zZWFyY2gudjEuUmV0cmlldmVSZXNwb25zZRJeCglHZXREaXNoZXMSJy5ub3RoaW5nZWF0cy5zZWFyY2gudjEuR2V0RGlzaGVzUmVxdWVzdBooLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5HZXREaXNoZXNSZXNwb25zZRJwCg9EZXNjcmliZUNhdGFsb2cSLS5ub3RoaW5nZWF0cy5zZWFyY2gudjEuRGVzY3JpYmVDYXRhbG9nUmVxdWVzdBouLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5EZXNjcmliZUNhdGFsb2dSZXNwb25zZUIzCi9pby5naXRodWIuc2xhc2huY29kZS5ub3RoaW5nZWF0cy5zZWFyY2guZ3JwYy52MVABYgZwcm90bzM");
+  fileDesc("CiJub3RoaW5nZWF0cy9zZWFyY2gvdjEvc2VhcmNoLnByb3RvEhVub3RoaW5nZWF0cy5zZWFyY2gudjEizAEKB0ZpbHRlcnMSEAoIY3Vpc2luZXMYASADKAkSDwoHZGlldGFyeRgCIAMoCRIZChFleGNsdWRlX2FsbGVyZ2VucxgDIAMoCRINCgVtb29kcxgEIAMoCRIcCg9tYXhfc3BpY2VfbGV2ZWwYBSABKAVIAIgBARIcCg9tYXhfcHJpY2VfY2VudHMYBiABKANIAYgBARIQCghvcGVuX25vdxgHIAEoCEISChBfbWF4X3NwaWNlX2xldmVsQhIKEF9tYXhfcHJpY2VfY2VudHMi4AEKD1JldHJpZXZlUmVxdWVzdBINCgVxdWVyeRgBIAEoCRIQCghsYW5ndWFnZRgCIAEoCRIQCghrZXl3b3JkcxgDIAMoCRIZChFuZWdhdGl2ZV9rZXl3b3JkcxgEIAMoCRIvCgdmaWx0ZXJzGAUgASgLMh4ubm90aGluZ2VhdHMuc2VhcmNoLnYxLkZpbHRlcnMSHAoPc2VtYW50aWNfd2VpZ2h0GAYgASgBSACIAQESEgoFbGltaXQYByABKAVIAYgBAUISChBfc2VtYW50aWNfd2VpZ2h0QggKBl9saW1pdCKCAwoERGlzaBIKCgJpZBgBIAEoCRIVCg1yZXN0YXVyYW50X2lkGAIgASgJEhcKD3Jlc3RhdXJhbnRfc2x1ZxgDIAEoCRIXCg9yZXN0YXVyYW50X25hbWUYBCABKAkSDwoHY3Vpc2luZRgFIAEoCRIMCgRzbHVnGAYgASgJEgwKBG5hbWUYByABKAkSEwoLZGVzY3JpcHRpb24YCCABKAkSDwoHc2VjdGlvbhgJIAEoCRITCgtwcmljZV9jZW50cxgKIAEoAxIPCgdkaWV0YXJ5GAsgAygJEhEKCWFsbGVyZ2VucxgMIAMoCRITCgtzcGljZV9sZXZlbBgNIAEoBRIQCghjYWxvcmllcxgOIAEoBRINCgVtb29kcxgPIAMoCRIRCglhdmFpbGFibGUYECABKAgSEAoIb3Blbl9ub3cYESABKAgSNAoFaW1hZ2UYEiABKAsyIC5ub3RoaW5nZWF0cy5zZWFyY2gudjEuRGlzaEltYWdlSACIAQFCCAoGX2ltYWdlIkkKCURpc2hJbWFnZRILCgN1cmwYASABKAkSEAoIY2FyZF91cmwYAiABKAkSEAoId2lkZV91cmwYAyABKAkSCwoDYWx0GAQgASgJInYKDVJldHJpZXZlZERpc2gSKQoEZGlzaBgBIAEoCzIbLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5EaXNoEg0KBXNjb3JlGAIgASgBEhQKDGxleGljYWxfcmFuaxgDIAEoBRIVCg1zZW1hbnRpY19yYW5rGAQgASgFIloKEFJldHJpZXZlUmVzcG9uc2USNAoGZGlzaGVzGAEgAygLMiQubm90aGluZ2VhdHMuc2VhcmNoLnYxLlJldHJpZXZlZERpc2gSEAoIc2VtYW50aWMYAiABKAgiMQoQR2V0RGlzaGVzUmVxdWVzdBILCgNpZHMYASADKAkSEAoIbGFuZ3VhZ2UYAiABKAkiQAoRR2V0RGlzaGVzUmVzcG9uc2USKwoGZGlzaGVzGAEgAygLMhsubm90aGluZ2VhdHMuc2VhcmNoLnYxLkRpc2giGAoWRGVzY3JpYmVDYXRhbG9nUmVxdWVzdCIwCg9Wb2NhYnVsYXJ5VmFsdWUSDQoFdmFsdWUYASABKAkSDgoGZGlzaGVzGAIgASgDIv4BChdEZXNjcmliZUNhdGFsb2dSZXNwb25zZRI4CghjdWlzaW5lcxgBIAMoCzImLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5Wb2NhYnVsYXJ5VmFsdWUSNwoHZGlldGFyeRgCIAMoCzImLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5Wb2NhYnVsYXJ5VmFsdWUSNQoFbW9vZHMYAyADKAsyJi5ub3RoaW5nZWF0cy5zZWFyY2gudjEuVm9jYWJ1bGFyeVZhbHVlEjkKCWFsbGVyZ2VucxgEIAMoCzImLm5vdGhpbmdlYXRzLnNlYXJjaC52MS5Wb2NhYnVsYXJ5VmFsdWUyvgIKDVNlYXJjaFNlcnZpY2USWwoIUmV0cmlldmUSJi5ub3RoaW5nZWF0cy5zZWFyY2gudjEuUmV0cmlldmVSZXF1ZXN0Gicubm90aGluZ2VhdHMuc2VhcmNoLnYxLlJldHJpZXZlUmVzcG9uc2USXgoJR2V0RGlzaGVzEicubm90aGluZ2VhdHMuc2VhcmNoLnYxLkdldERpc2hlc1JlcXVlc3QaKC5ub3RoaW5nZWF0cy5zZWFyY2gudjEuR2V0RGlzaGVzUmVzcG9uc2UScAoPRGVzY3JpYmVDYXRhbG9nEi0ubm90aGluZ2VhdHMuc2VhcmNoLnYxLkRlc2NyaWJlQ2F0YWxvZ1JlcXVlc3QaLi5ub3RoaW5nZWF0cy5zZWFyY2gudjEuRGVzY3JpYmVDYXRhbG9nUmVzcG9uc2VCMwovaW8uZ2l0aHViLnNsYXNobmNvZGUubm90aGluZ2VhdHMuc2VhcmNoLmdycGMudjFQAWIGcHJvdG8z");
 
 /**
  * Filters combine with AND; inside one filter, values combine as noted.
@@ -224,6 +224,13 @@ export type Dish = Message<"nothingeats.search.v1.Dish"> & {
    * @generated from field: bool open_now = 17;
    */
   openNow: boolean;
+
+  /**
+   * The dish's photo; unset when it has none (the shop draws an illustration).
+   *
+   * @generated from field: optional nothingeats.search.v1.DishImage image = 18;
+   */
+  image?: DishImage | undefined;
 };
 
 /**
@@ -232,6 +239,40 @@ export type Dish = Message<"nothingeats.search.v1.Dish"> & {
  */
 export const DishSchema: GenMessage<Dish> = /*@__PURE__*/
   messageDesc(file_nothingeats_search_v1_search, 2);
+
+/**
+ * An uploaded photo: paths on the shop's origin (/media/...), alt text in the requested language.
+ *
+ * @generated from message nothingeats.search.v1.DishImage
+ */
+export type DishImage = Message<"nothingeats.search.v1.DishImage"> & {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url: string;
+
+  /**
+   * @generated from field: string card_url = 2;
+   */
+  cardUrl: string;
+
+  /**
+   * @generated from field: string wide_url = 3;
+   */
+  wideUrl: string;
+
+  /**
+   * @generated from field: string alt = 4;
+   */
+  alt: string;
+};
+
+/**
+ * Describes the message nothingeats.search.v1.DishImage.
+ * Use `create(DishImageSchema)` to create a new message.
+ */
+export const DishImageSchema: GenMessage<DishImage> = /*@__PURE__*/
+  messageDesc(file_nothingeats_search_v1_search, 3);
 
 /**
  * @generated from message nothingeats.search.v1.RetrievedDish
@@ -267,7 +308,7 @@ export type RetrievedDish = Message<"nothingeats.search.v1.RetrievedDish"> & {
  * Use `create(RetrievedDishSchema)` to create a new message.
  */
 export const RetrievedDishSchema: GenMessage<RetrievedDish> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 3);
+  messageDesc(file_nothingeats_search_v1_search, 4);
 
 /**
  * @generated from message nothingeats.search.v1.RetrieveResponse
@@ -291,7 +332,7 @@ export type RetrieveResponse = Message<"nothingeats.search.v1.RetrieveResponse">
  * Use `create(RetrieveResponseSchema)` to create a new message.
  */
 export const RetrieveResponseSchema: GenMessage<RetrieveResponse> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 4);
+  messageDesc(file_nothingeats_search_v1_search, 5);
 
 /**
  * @generated from message nothingeats.search.v1.GetDishesRequest
@@ -317,7 +358,7 @@ export type GetDishesRequest = Message<"nothingeats.search.v1.GetDishesRequest">
  * Use `create(GetDishesRequestSchema)` to create a new message.
  */
 export const GetDishesRequestSchema: GenMessage<GetDishesRequest> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 5);
+  messageDesc(file_nothingeats_search_v1_search, 6);
 
 /**
  * @generated from message nothingeats.search.v1.GetDishesResponse
@@ -334,7 +375,7 @@ export type GetDishesResponse = Message<"nothingeats.search.v1.GetDishesResponse
  * Use `create(GetDishesResponseSchema)` to create a new message.
  */
 export const GetDishesResponseSchema: GenMessage<GetDishesResponse> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 6);
+  messageDesc(file_nothingeats_search_v1_search, 7);
 
 /**
  * @generated from message nothingeats.search.v1.DescribeCatalogRequest
@@ -347,7 +388,7 @@ export type DescribeCatalogRequest = Message<"nothingeats.search.v1.DescribeCata
  * Use `create(DescribeCatalogRequestSchema)` to create a new message.
  */
 export const DescribeCatalogRequestSchema: GenMessage<DescribeCatalogRequest> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 7);
+  messageDesc(file_nothingeats_search_v1_search, 8);
 
 /**
  * @generated from message nothingeats.search.v1.VocabularyValue
@@ -371,7 +412,7 @@ export type VocabularyValue = Message<"nothingeats.search.v1.VocabularyValue"> &
  * Use `create(VocabularyValueSchema)` to create a new message.
  */
 export const VocabularyValueSchema: GenMessage<VocabularyValue> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 8);
+  messageDesc(file_nothingeats_search_v1_search, 9);
 
 /**
  * @generated from message nothingeats.search.v1.DescribeCatalogResponse
@@ -403,7 +444,7 @@ export type DescribeCatalogResponse = Message<"nothingeats.search.v1.DescribeCat
  * Use `create(DescribeCatalogResponseSchema)` to create a new message.
  */
 export const DescribeCatalogResponseSchema: GenMessage<DescribeCatalogResponse> = /*@__PURE__*/
-  messageDesc(file_nothingeats_search_v1_search, 9);
+  messageDesc(file_nothingeats_search_v1_search, 10);
 
 /**
  * Retrieval over the catalog for the Craving Coach (assistant-service, TypeScript): a hybrid search
