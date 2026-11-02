@@ -24,9 +24,9 @@ export async function testTokens() {
     const auth = new JwtAuth({ issuer: ISSUER, audience: AUDIENCE, jwksUrl: 'http://unused' }, createLocalJWKSet({
         keys: [jwk],
     }));
-    const token = (userId: string, overrides: { issuer?: string; expiresIn?: string } = {}) =>
+    const token = (userId: string, overrides: { issuer?: string; expiresIn?: string; roles?: string[] } = {}) =>
         new SignJWT({
-            roles: ['customer'],
+            roles: overrides.roles ?? ['customer'],
             locale: 'de',
         })
             .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })

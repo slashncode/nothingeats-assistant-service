@@ -1,6 +1,6 @@
 import type { UIMessage } from 'ai';
 import type { Database } from './db.ts';
-import { and, desc, eq, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, lt, or, sql } from 'drizzle-orm';
 import { conversations } from './schema.ts';
 
 export interface Conversation {
@@ -18,6 +18,23 @@ export interface ConversationSummary {
     updatedAt: Date;
 }
 
+/** A conversation in the backoffice's list: whose, how long, how expensive. */
+export interface AdminConversationSummary {
+    id: string;
+    userId: string;
+    title: string;
+    messageCount: number;
+    tokens: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+/** Where the backoffice's list continues: after this conversation (newest first). */
+export interface AdminCursor {
+    updatedAt: Date;
+    id: string;
+}
+
 /** What the coach needs from storage; Postgres in the service, a map in some tests. */
 export interface ConversationStore {
     /** The conversation if [userId] owns it; `'foreign'` when someone else does. */
@@ -29,6 +46,10 @@ export interface ConversationStore {
     deleteUser: (userId: string) => Promise<number>;
     export: (userId: string) => Promise<Conversation[]>;
     purgeOlderThan: (cutoff: Date) => Promise<number>;
+    /** Every customer's conversations (the backoffice), newest first, after [cursor]. */
+    adminList: (filter: { userId?: string }, cursor: AdminCursor | undefined, limit: number) => Promise<AdminConversationSummary[]>;
+    /** One conversation, whoever owns it (the backoffice). */
+    adminFind: (id: string) => Promise<(Conversation & { userId: string }) | undefined>;
 }
 
 const TITLE_LENGTH = 60;
@@ -105,6 +126,39 @@ export class PostgresConversations implements ConversationStore {
 
     async export(userId: string): Promise<Conversation[]> {
         return this.db.select().from(conversations).where(eq(conversations.userId, userId)).orderBy(conversations.createdAt);
+    }
+
+    async adminList(filter: { userId?: string }, cursor: AdminCursor | undefined, limit: number): Promise<AdminConversationSummary[]> {
+        const conditions = [
+            filter.userId
+                ? eq(conversations.userId, filter.userId)
+                : undefined,
+            cursor
+                ? or(
+                        lt(conversations.updatedAt, cursor.updatedAt),
+                        and(eq(conversations.updatedAt, cursor.updatedAt), lt(conversations.id, cursor.id)),
+                    )
+                : undefined,
+        ];
+        return this.db
+            .select({
+                id: conversations.id,
+                userId: conversations.userId,
+                title: conversations.title,
+                messageCount: sql<number>`jsonb_array_length(${conversations.messages})`.mapWith(Number),
+                tokens: conversations.tokens,
+                createdAt: conversations.createdAt,
+                updatedAt: conversations.updatedAt,
+            })
+            .from(conversations)
+            .where(and(...conditions))
+            .orderBy(desc(conversations.updatedAt), desc(conversations.id))
+            .limit(limit);
+    }
+
+    async adminFind(id: string) {
+        const [row] = await this.db.select().from(conversations).where(eq(conversations.id, id));
+        return row;
     }
 
     async purgeOlderThan(cutoff: Date): Promise<number> {

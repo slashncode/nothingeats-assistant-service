@@ -13,6 +13,7 @@ import { DemoModel } from '../src/chat/demoModel.ts';
 import { userEventHandler } from '../src/events/userEvents.ts';
 import { createApp } from '../src/http/app.ts';
 import { ValkeyLimiter } from '../src/limits.ts';
+import { log } from '../src/log.ts';
 import { CachedVocabulary } from '../src/search/catalog.ts';
 import { PostgresConversations } from '../src/store/conversations.ts';
 import { chunks, FakeCatalog, json, RecordingAnalytics, startPostgres, startValkey, testTokens, VALKEY_PASSWORD } from './support.ts';
@@ -263,6 +264,42 @@ describe('the craving coach', () => {
             const stored = await conversations.find('conversation-failed', 'customer-6');
             expect(stored !== 'foreign' && stored?.messages[0]?.role).toBe('user');
         });
+    });
+
+    it('lets admins read every customer\'s transcripts, page by page, and logs who read which', async () => {
+        const { app } = await service();
+        const customer = await tokens.token('customer-admin-1');
+        const other = await tokens.token('customer-admin-2');
+        const admin = await tokens.token('admin-1', {
+            roles: ['admin', 'customer'],
+        });
+        await chunks(await chat(app, customer, 'Etwas Scharfes', { id: 'conversation-admin-1' }));
+        await chunks(await chat(app, other, 'Etwas Süßes', { id: 'conversation-admin-2' }));
+        const get = (path: string, token = admin) => app.request(`/api/assistant/v1/admin${path}`, {
+            headers: { authorization: `Bearer ${token}` },
+        });
+
+        expect((await get('/conversations', customer)).status).toBe(403);
+
+        await vi.waitFor(async () => {
+            const mine = await json(await get('/conversations?userId=customer-admin-1'));
+            expect(mine.items).toHaveLength(1);
+            expect(mine.items[0]).toMatchObject({ id: 'conversation-admin-1', userId: 'customer-admin-1', title: 'Etwas Scharfes' });
+            expect(mine.items[0].messageCount).toBeGreaterThanOrEqual(2);
+        });
+        const first = await json(await get('/conversations?limit=1'));
+        const second = await json(await get(`/conversations?limit=1&cursor=${first.nextCursor}`));
+        expect([first.items[0].id, second.items[0].id]).not.toContain(undefined);
+        expect(first.items[0].id).not.toBe(second.items[0].id);
+        expect((await get('/conversations?cursor=nonsense')).status).toBe(422);
+
+        const reads = vi.spyOn(log, 'info');
+        const transcript = await json(await get('/conversations/conversation-admin-2'));
+        expect(transcript).toMatchObject({ id: 'conversation-admin-2', userId: 'customer-admin-2' });
+        expect(transcript.messages[0].parts[0].text).toBe('Etwas Süßes');
+        expect(reads).toHaveBeenCalledWith({ adminId: 'admin-1', conversationId: 'conversation-admin-2', ownerId: 'customer-admin-2' }, 'An admin read a coach transcript');
+        reads.mockRestore();
+        expect((await get('/conversations/conversation-gone')).status).toBe(404);
     });
 
     it('hands out every conversation for the GDPR export and forgets them all when the account is deleted', async () => {

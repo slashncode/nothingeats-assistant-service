@@ -24,6 +24,8 @@ Search runs on the customer's behalf: their access token goes along on every gRP
 | `GET` | `/conversations/{id}` | One conversation with its messages, as the chat shows them |
 | `DELETE` | `/conversations/{id}` | 204 |
 | `GET` | `/me/export` | GDPR export: every conversation |
+| `GET` | `/admin/conversations?userId=&cursor=&limit=` | Role `admin` (the backoffice): every customer's conversations, newest first, with owner, message count and tokens |
+| `GET` | `/admin/conversations/{id}` | Role `admin`: one transcript; every read is logged with the admin's and the owner's id (never the content) |
 
 Errors are RFC 9457 problems with a stable `code`. A failing model ends the stream with an error part `COACH_BUSY` (rate limited) or `COACH_UNAVAILABLE`, and the customer's message stays stored.
 

@@ -120,6 +120,14 @@ class MemoryConversations implements ConversationStore {
         return 0;
     }
 
+    async adminList() {
+        return [];
+    }
+
+    async adminFind() {
+        return undefined;
+    }
+
     tokens(id: string) {
         return this.stored.get(id)?.tokens ?? 0;
     }

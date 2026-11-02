@@ -1,8 +1,9 @@
 import type { Consent } from '../analytics.ts';
 import type { CoachAvailability } from '../chat/availability.ts';
 import type { Coach } from '../chat/coach.ts';
-import type { ConversationStore } from '../store/conversations.ts';
+import type { AdminCursor, ConversationStore } from '../store/conversations.ts';
 import type { Caller, JwtAuth } from './auth.ts';
+import { Buffer } from 'node:buffer';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { log } from '../log.ts';
@@ -50,6 +51,27 @@ const chatRequest = z.object({
             .length(1),
     }),
 });
+
+const adminListQuery = z.object({
+    userId: z.string().trim().min(1).max(100).optional(),
+    cursor: z.string().max(200).optional(),
+    limit: z.coerce.number().int().min(1).max(50).default(25),
+});
+
+function encodeCursor(cursor: AdminCursor): string {
+    return Buffer.from(`${cursor.updatedAt.toISOString()}|${cursor.id}`).toString('base64url');
+}
+
+function decodeCursor(raw: string): AdminCursor {
+    const [at, id] = Buffer.from(raw, 'base64url').toString().split('|', 2);
+    const updatedAt = new Date(at ?? '');
+    if (!id || Number.isNaN(updatedAt.getTime())) {
+        throw AppError.invalid('COACH_INVALID', [
+            { field: 'cursor', message: 'is not a cursor from this API' },
+        ]);
+    }
+    return { updatedAt, id };
+}
 
 /** The browser's PostHog ids, which it only sends after the visitor agreed to analytics. */
 function consentOf(headers: Headers): Consent | undefined {
@@ -160,6 +182,58 @@ export function createApp({ auth, coach, availability, conversations, health }: 
             })),
         });
     });
+
+    // The backoffice (role `admin`): every customer's conversations, read only. Transcripts are
+    // personal data, so every read of one is logged with who read it (never what it says).
+    const admin = new Hono<Env>();
+    admin.use('*', async (c, next) => {
+        if (!c.get('caller').roles.includes('admin'))
+            throw new AppError(403, 'FORBIDDEN', 'Only admins may do this');
+        await next();
+    });
+
+    admin.get('/conversations', async (c) => {
+        const parsed = adminListQuery.safeParse(c.req.query());
+        if (!parsed.success) {
+            throw AppError.invalid(
+                'COACH_INVALID',
+                parsed.error.issues.map(issue => ({ field: issue.path.join('.') || 'query', message: issue.message })),
+            );
+        }
+        const { userId, cursor, limit } = parsed.data;
+        const page = await conversations.adminList({ userId }, cursor
+            ? decodeCursor(cursor)
+            : undefined, limit + 1);
+        const items = page.slice(0, limit);
+        const last = items.at(-1);
+        return c.json({
+            items,
+            nextCursor: page.length > limit && last
+                ? encodeCursor({ updatedAt: last.updatedAt, id: last.id })
+                : null,
+        });
+    });
+
+    admin.get('/conversations/:id', async (c) => {
+        const id = conversationId.safeParse(c.req.param('id'));
+        const found = id.success
+            ? await conversations.adminFind(id.data)
+            : undefined;
+        if (!found)
+            throw AppError.notFound('CONVERSATION_NOT_FOUND', 'There is no such conversation');
+        log.info({ adminId: c.get('caller').id, conversationId: found.id, ownerId: found.userId }, 'An admin read a coach transcript');
+        return c.json({
+            id: found.id,
+            userId: found.userId,
+            title: found.title,
+            messages: found.messages,
+            tokens: found.tokens,
+            createdAt: found.createdAt,
+            updatedAt: found.updatedAt,
+        });
+    });
+
+    api.route('/admin', admin);
 
     app.route('/api/assistant/v1', api);
 
