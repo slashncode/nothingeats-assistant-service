@@ -1,4 +1,5 @@
 import type { ErrorTracking } from '../analytics.ts';
+import type { KafkaConnection } from '../config.ts';
 import type { Component } from '../lifecycle.ts';
 import { Consumer } from '@platformatic/kafka';
 import { log } from '../log.ts';
@@ -29,16 +30,16 @@ export interface LagSource {
  * The client carries the group's id but never joins the group: it only looks, it never commits.
  */
 export class KafkaConsumerLag implements LagSource {
-    private readonly bootstrapServers: string[];
+    private readonly connection: KafkaConnection;
     private readonly now: () => number;
 
-    constructor(bootstrapServers: string[], now: () => number = Date.now) {
-        this.bootstrapServers = bootstrapServers;
+    constructor(connection: KafkaConnection, now: () => number = Date.now) {
+        this.connection = connection;
         this.now = now;
     }
 
     async of(groupId: string, topics: string[]): Promise<PartitionLag[]> {
-        const reader = new Consumer({ groupId, clientId: `${groupId}-lag`, bootstrapBrokers: this.bootstrapServers });
+        const reader = new Consumer({ ...this.connection, groupId, clientId: `${groupId}-lag` });
         try {
             const metadata = await reader.metadata({ topics });
             const assignments = topics.flatMap((topic) => {

@@ -1,4 +1,5 @@
 import type { Message, MessagesStream } from '@platformatic/kafka';
+import type { KafkaConnection } from '../config.ts';
 import type { Component } from '../lifecycle.ts';
 import type { ConversationStore } from '../store/conversations.ts';
 import { Consumer, Producer, stringDeserializers, stringSerializers } from '@platformatic/kafka';
@@ -111,16 +112,16 @@ export class UserEvents implements Component {
     private loop: Promise<void> | undefined;
     private running = false;
     private healthy = false;
-    private readonly bootstrapServers: string[];
+    private readonly connection: KafkaConnection;
     private readonly conversations: ConversationStore;
 
-    constructor(bootstrapServers: string[], conversations: ConversationStore) {
-        this.bootstrapServers = bootstrapServers;
+    constructor(connection: KafkaConnection, conversations: ConversationStore) {
+        this.connection = connection;
         this.conversations = conversations;
     }
 
     async start(): Promise<void> {
-        this.producer = new Producer({ clientId: `${GROUP_ID}-dlq`, bootstrapBrokers: this.bootstrapServers, serializers: stringSerializers });
+        this.producer = new Producer({ ...this.connection, clientId: `${GROUP_ID}-dlq`, serializers: stringSerializers });
         this.running = true;
         this.loop = supervise(
             healthy => this.consume(healthy),
@@ -148,7 +149,7 @@ export class UserEvents implements Component {
         const consumer = new Consumer<string, string, string, string>({
             groupId: GROUP_ID,
             clientId: GROUP_ID,
-            bootstrapBrokers: this.bootstrapServers,
+            ...this.connection,
             deserializers: stringDeserializers,
         });
         try {

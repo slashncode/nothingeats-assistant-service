@@ -69,7 +69,7 @@ pnpm build             # dist/main.mjs, one bundled file for the image
 pnpm start             # serve; migrate and cron purge-conversations are the other modes
 ```
 
-Configuration comes from the environment (`__` nests, like the Kotlin services): `DATABASE__URL`, `DATABASE__USER`, `DATABASE__PASSWORD`, `KAFKA__BOOTSTRAP_SERVERS`, `VALKEY__HOST`, `VALKEY__PORT`, `VALKEY__PASSWORD`, `JWT__JWKS_URL`, `SEARCH__TARGET`, `AI__PROVIDER` (`OPENAI`, or `DEMO` for a scripted model without a key), `OPENAI__API_KEY`, `POSTHOG__PROJECT_TOKEN`. See `src/config.ts`.
+Configuration comes from the environment (`__` nests, like the Kotlin services): `DATABASE__URL`, `DATABASE__USER`, `DATABASE__PASSWORD`, `KAFKA__BOOTSTRAP_SERVERS` (from the host also `KAFKA__SASL__USERNAME` and `KAFKA__SASL__PASSWORD`: `just kafka-env` in the hub), `VALKEY__HOST`, `VALKEY__PORT`, `VALKEY__PASSWORD`, `JWT__JWKS_URL`, `SEARCH__TARGET`, `AI__PROVIDER` (`OPENAI`, or `DEMO` for a scripted model without a key), `OPENAI__API_KEY`, `POSTHOG__PROJECT_TOKEN`. See `src/config.ts`.
 
 The gRPC client in `src/gen` is generated from search-service's protos (`pnpm gen`, needs the sibling checkout and buf); CI checks it is current.
 

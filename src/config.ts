@@ -14,6 +14,9 @@ const environment = z
         DATABASE__PASSWORD: z.string().default(''),
         DATABASE__MAXIMUM_POOL_SIZE: positive.default(5),
         KAFKA__BOOTSTRAP_SERVERS: z.string().default('localhost:19094'),
+        // The cluster's listener for the host wants a SCRAM login; the pods' own listener has none.
+        KAFKA__SASL__USERNAME: z.string().optional(),
+        KAFKA__SASL__PASSWORD: z.string().optional(),
         VALKEY__HOST: z.string().default('localhost'),
         VALKEY__PORT: port.default(16379),
         VALKEY__USERNAME: z.string().default('default'),
@@ -44,14 +47,24 @@ const environment = z
     .refine(env => env.AI__PROVIDER !== 'OPENAI' || env.OPENAI__API_KEY, {
         message: 'is required with AI__PROVIDER=OPENAI',
         path: ['OPENAI__API_KEY'],
+    })
+    .refine(env => !env.KAFKA__SASL__USERNAME || env.KAFKA__SASL__PASSWORD, {
+        message: 'is required with KAFKA__SASL__USERNAME',
+        path: ['KAFKA__SASL__PASSWORD'],
     });
 
 export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high';
 
+/** Where the broker is and how to sign in: spread into every Kafka client's options. */
+export interface KafkaConnection {
+    bootstrapBrokers: string[];
+    sasl?: { mechanism: 'SCRAM-SHA-512'; username: string; password: string };
+}
+
 export interface Config {
     http: { port: number };
     database: { url: string; user: string; password: string; maximumPoolSize: number };
-    kafka: { bootstrapServers: string[] };
+    kafka: KafkaConnection;
     valkey: { host: string; port: number; username: string; password?: string };
     jwt: { issuer: string; audience: string; jwksUrl: string };
     posthog: { projectToken: string; host: string; flagsSecretKey?: string };
@@ -80,7 +93,12 @@ export function loadConfig(source: Record<string, string | undefined> = process.
             maximumPoolSize: env.DATABASE__MAXIMUM_POOL_SIZE,
         },
         kafka: {
-            bootstrapServers: env.KAFKA__BOOTSTRAP_SERVERS.split(',').map(server => server.trim()),
+            bootstrapBrokers: env.KAFKA__BOOTSTRAP_SERVERS.split(',').map(server => server.trim()),
+            ...(env.KAFKA__SASL__USERNAME
+                ? {
+                        sasl: { mechanism: 'SCRAM-SHA-512', username: env.KAFKA__SASL__USERNAME, password: env.KAFKA__SASL__PASSWORD! },
+                    }
+                : {}),
         },
         valkey: {
             host: env.VALKEY__HOST,

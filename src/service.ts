@@ -77,8 +77,8 @@ export function createService(config: Config) {
             limiter,
             analytics,
             http,
-            new UserEvents(config.kafka.bootstrapServers, conversations),
-            new ConsumerLagWatch(GROUP_ID, [USER_TOPIC], new KafkaConsumerLag(config.kafka.bootstrapServers), analytics),
+            new UserEvents(config.kafka, conversations),
+            new ConsumerLagWatch(GROUP_ID, [USER_TOPIC], new KafkaConsumerLag(config.kafka), analytics),
         ],
         config.lifecycle.drainDelayMs,
     );

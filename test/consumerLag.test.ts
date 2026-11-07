@@ -135,7 +135,7 @@ describe('consumer lag from kafka', () => {
         });
         const now = start + 40 * MINUTE_MS;
 
-        const lags = await new KafkaConsumerLag(kafka.bootstrapServers, () => now).of('lagging-service', [topic]);
+        const lags = await new KafkaConsumerLag({ bootstrapBrokers: kafka.bootstrapServers }, () => now).of('lagging-service', [topic]);
 
         expect(lags).toEqual([
             {
@@ -176,6 +176,6 @@ describe('consumer lag from kafka', () => {
             ],
         });
 
-        expect(await new KafkaConsumerLag(kafka.bootstrapServers).of('current-service', [topic])).toEqual([]);
+        expect(await new KafkaConsumerLag({ bootstrapBrokers: kafka.bootstrapServers }).of('current-service', [topic])).toEqual([]);
     }, 60_000);
 });
