@@ -79,7 +79,14 @@ export class GrpcCatalog implements Catalog {
 
     constructor(target: string, deadlineMs: number) {
         this.deadlineMs = deadlineMs;
-        this.client = createClient(SearchService, createGrpcTransport({ baseUrl: target }));
+        // Pings find a connection whose pod died without a goodbye (killed, its node gone) before a
+        // call waits out its deadline on it; the same values as the Kotlin services' channels.
+        this.client = createClient(SearchService, createGrpcTransport({
+            baseUrl: target,
+            pingIntervalMs: 20_000,
+            pingTimeoutMs: 5_000,
+            pingIdleConnection: true,
+        }));
     }
 
     async retrieve(token: string, input: RetrieveInput): Promise<Retrieved> {
