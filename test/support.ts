@@ -2,10 +2,11 @@ import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import type { StartedTestContainer } from 'testcontainers';
 import type { Analytics, Consent } from '../src/analytics.ts';
 import type { Catalog, Dish, Language, Retrieved, RetrieveInput, Vocabulary } from '../src/search/catalog.ts';
+import { createServer } from 'node:net';
 import path from 'node:path';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
-import { GenericContainer } from 'testcontainers';
+import { GenericContainer, Wait } from 'testcontainers';
 import { JwtAuth } from '../src/http/auth.ts';
 import { Postgres } from '../src/store/db.ts';
 
@@ -60,6 +61,46 @@ export async function startValkey(): Promise<StartedTestContainer> {
         .withCommand(['valkey-server', '--requirepass', VALKEY_PASSWORD])
         .withExposedPorts(6379)
         .start();
+}
+
+/**
+ * A single-node Kafka like the cluster's (KRaft, same image as the Kotlin platform's tests). The
+ * broker advertises the host port, so it listens on a free port that is mapped one to one.
+ */
+export async function startKafka(): Promise<{ container: StartedTestContainer; bootstrapServers: string[] }> {
+    const port = await freePort();
+    const container = await new GenericContainer('apache/kafka:4.2.1')
+        .withEnvironment({
+            KAFKA_NODE_ID: '1',
+            KAFKA_PROCESS_ROLES: 'broker,controller',
+            KAFKA_LISTENERS: `PLAINTEXT://:${port},CONTROLLER://:9093`,
+            KAFKA_ADVERTISED_LISTENERS: `PLAINTEXT://localhost:${port}`,
+            KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER',
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT',
+            KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093',
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1',
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: '1',
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: '1',
+            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: '0',
+        })
+        .withExposedPorts({ container: port, host: port })
+        .withWaitStrategy(Wait.forLogMessage(/Kafka Server started/))
+        .start();
+    return {
+        container,
+        bootstrapServers: [`localhost:${port}`],
+    };
+}
+
+async function freePort(): Promise<number> {
+    return new Promise((resolve, reject) => {
+        const server = createServer();
+        server.once('error', reject);
+        server.listen(0, () => {
+            const { port } = server.address() as { port: number };
+            server.close(() => resolve(port));
+        });
+    });
 }
 
 export function dish(id: string, overrides: Partial<Dish> = {}): Dish {

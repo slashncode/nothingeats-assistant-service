@@ -16,6 +16,11 @@ export interface Analytics {
     capture: (consent: Consent | undefined, event: string, properties: Record<string, unknown>) => void;
 }
 
+/** Server errors nobody's request caused (a stalled consumer), for PostHog's error tracking. */
+export interface ErrorTracking {
+    captureException: (error: Error, properties: Record<string, unknown>) => void;
+}
+
 export interface Flags {
     /**
      * Whether [flag] is on for [distinctId], evaluated in this process from the flag definitions;
@@ -30,7 +35,7 @@ export interface Flags {
  * project's flags secret key it also loads the flag definitions (every 30 s) and evaluates flags
  * locally: deciding a flag sends PostHog nothing about the person.
  */
-export class PostHogAnalytics implements Analytics, Flags, Component {
+export class PostHogAnalytics implements Analytics, ErrorTracking, Flags, Component {
     readonly name = 'posthog';
     private readonly client: PostHog | undefined;
     private readonly localFlags: boolean;
@@ -77,6 +82,11 @@ export class PostHogAnalytics implements Analytics, Flags, Component {
                     : {}),
             },
         });
+    }
+
+    // No distinct id: the error belongs to the service, not to a person.
+    captureException(error: Error, properties: Record<string, unknown>): void {
+        this.client?.captureException(error, undefined, properties);
     }
 
     async stop(): Promise<void> {

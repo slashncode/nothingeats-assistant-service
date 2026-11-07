@@ -6,7 +6,8 @@ import { PostHogAnalytics } from './analytics.ts';
 import { CoachAvailability } from './chat/availability.ts';
 import { Coach } from './chat/coach.ts';
 import { DemoModel } from './chat/demoModel.ts';
-import { UserEvents } from './events/userEvents.ts';
+import { ConsumerLagWatch, KafkaConsumerLag } from './events/consumerLag.ts';
+import { GROUP_ID, USER_TOPIC, UserEvents } from './events/userEvents.ts';
 import { createApp } from './http/app.ts';
 import { JwtAuth } from './http/auth.ts';
 import { HttpServer } from './http/server.ts';
@@ -77,6 +78,7 @@ export function createService(config: Config) {
             analytics,
             http,
             new UserEvents(config.kafka.bootstrapServers, conversations),
+            new ConsumerLagWatch(GROUP_ID, [USER_TOPIC], new KafkaConsumerLag(config.kafka.bootstrapServers), analytics),
         ],
         config.lifecycle.drainDelayMs,
     );

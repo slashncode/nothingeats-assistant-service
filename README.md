@@ -39,6 +39,10 @@ A PostHog feature flag decides who gets the coach (rollout percentage) and switc
 - Conversations are kept 30 days after their last message (`cron purge-conversations`), are in the GDPR export, and are erased when identity publishes `user.deleted`.
 - No name or e-mail address goes into a prompt; the model knows the language on screen and the time in Hamburg.
 
+## Events
+
+The service consumes `identity.user.v1` as group `assistant-service`: a failing record is retried, then parked in `assistant-service.dlq`, and a consumer that dies is replaced. Every 5 minutes a watch reads how long the oldest unprocessed event has waited (committed offset, end offset, that record's timestamp); over 10 minutes is logged as an error and reported to PostHog error tracking as `ConsumerStalledError`, like the Kotlin services' `ConsumerStalledException`.
+
 ## PostHog LLM analytics
 
 Only for customers who agreed to analytics (the browser then sends its PostHog ids). Each turn is a trace: one `$ai_generation` per model call (model, tokens, latency, time to first token, input and output), one `$ai_span` per tool call, and a closing `$ai_trace`. The conversation is the `$ai_session_id`, and `$session_id` links the turn to the session replay. `coach_dishes_recommended` feeds the funnel from recommendation to order.
